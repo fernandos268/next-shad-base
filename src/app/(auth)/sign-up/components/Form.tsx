@@ -82,7 +82,7 @@ export function SignupForm(props: IProps) {
         </div>
 
         <FieldGroup className="gap-2">
-          <div className="flex w-full flex-col gap-[4px]">
+          <div className="flex w-full flex-col gap-1">
             <FieldLegend className="mb-1">Personal Information</FieldLegend>
             <FieldDescription>
               Provide your full name and preferred name to be called.
@@ -175,8 +175,8 @@ export function SignupForm(props: IProps) {
           />
         </FieldGroup>
 
-        <FieldGroup className="gap-2">
-          <div className="flex w-full flex-col gap-[4px]">
+        <FieldGroup className="gap-1">
+          <div className="flex w-full flex-col gap-1">
             <FieldLegend className="mb-1">Contact Information</FieldLegend>
             <FieldDescription>
               We&apos;ll use this to contact you. We will not share your data
@@ -219,7 +219,7 @@ export function SignupForm(props: IProps) {
           />
         </FieldGroup>
 
-        <FieldGroup className="gap-2">
+        <FieldGroup className="gap-1">
           <FieldLegend>Signin Information</FieldLegend>
 
           <Controller

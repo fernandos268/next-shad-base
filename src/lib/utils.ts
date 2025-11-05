@@ -4,3 +4,11 @@ import { twMerge } from "tailwind-merge"
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
+
+export function GenerateFullName(nameFields: { first_name: string, last_name?: string, suffix?: string }) {
+  const { first_name, last_name, suffix } = nameFields
+  let fullName = first_name
+  if (last_name) fullName += ` ${last_name}`
+  if (suffix) fullName += ` ${suffix}`
+  return fullName
+} 
