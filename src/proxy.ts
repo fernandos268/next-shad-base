@@ -1,6 +1,5 @@
 import type { NextRequest } from "next/server";
-
-import { auth0Client } from "@/lib/auth0"; // Adjust path if your auth0 client is elsewhere
+import { auth0Client } from "@/lib/auth0";
 
 export async function proxy(request: NextRequest) {
     return await auth0Client.middleware(request);
