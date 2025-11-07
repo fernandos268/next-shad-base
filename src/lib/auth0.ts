@@ -1,6 +1,7 @@
 import { Auth0Client } from "@auth0/nextjs-auth0/server";
 import { ManagementClient, AuthenticationClient } from 'auth0'
 
+
 export const managementClient = new ManagementClient({
     domain: process.env.AUTH0_DOMAIN!,
     clientId: process.env.AUTH0_CLIENT_ID!,
@@ -15,3 +16,4 @@ export const authenticationClient = new AuthenticationClient({
 
 
 export const auth0Client = new Auth0Client();
+

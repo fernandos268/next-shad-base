@@ -9,28 +9,7 @@ import pick from 'lodash/pick'
 import { revalidatePath } from 'next/cache'
 import { cookies } from "next/headers"
 import { redirect } from 'next/navigation'
-import { sessionDuration } from '@/lib/static'
-
-// export const checkUserExists = async (email: string): Promise<boolean> => {
-//   // const supabaseClient = await createClient()
-
-//   // const result = await supabaseClient
-//   //   .from('profiles')
-//   //   .select('id')
-//   //   .eq('email', email)
-//   //   .maybeSingle();
-
-//   // const { data, error } = result
-
-//   // if (error) {
-//   //   console.error('Error checking user:', error.message);
-//   //   throw new Error('Database error');
-//   // }
-
-//   // return !!data
-
-//   return true
-// }
+import { sessionDuration, defaultPostAuthRedirectUrl } from '@/lib/static'
 
 
 export const signUpAction = async (data: SignUpInput): Promise<ISignUpActionState | null> => {
@@ -61,7 +40,7 @@ export const signUpAction = async (data: SignUpInput): Promise<ISignUpActionStat
       family_name: profile_data.last_name,
       user_metadata: profile_data,
     })
-    
+
     console.log("%c Line:55 🥚 user11111111", "color:#7f2b82", user);
 
     if (!user) {
@@ -121,8 +100,8 @@ export const signUpAction = async (data: SignUpInput): Promise<ISignUpActionStat
     }
   }
 
-  revalidatePath('/profile', 'layout')
-  redirect('/profile')
+  revalidatePath(defaultPostAuthRedirectUrl, 'layout')
+  redirect(defaultPostAuthRedirectUrl)
 }
 
 export const signInAction = async (data: SignInInput) => {
@@ -147,8 +126,6 @@ export const signInAction = async (data: SignInInput) => {
       }
     }
 
-    console.log("%c Line:136 🍢 tokenResponse", "color:#b03734", tokenResponse);
-
     // Save tokens in a secure cookie (simplified example)
     const { access_token, id_token } = tokenResponse.data
 
@@ -158,8 +135,8 @@ export const signInAction = async (data: SignInInput) => {
       secure: true,
       sameSite: "lax",
       path: "/",
-      // maxAge: sessionDuration,
-      maxAge: 60 * 1
+      maxAge: sessionDuration,
+      // maxAge: 60 * 1
     });
 
     cookieStore.set("id_token", id_token as string, {
@@ -167,21 +144,20 @@ export const signInAction = async (data: SignInInput) => {
       secure: true,
       sameSite: "lax",
       path: "/",
-      // maxAge: sessionDuration,
-      maxAge: 60 * 1
+      maxAge: sessionDuration,
+      // maxAge: 60 * 1
     });
   } catch (error) {
-    console.log("%c Line:215 🍰 signUpAction > error", "color:#fca650", error);
     return {
       success: false,
       errors: {
-        auth_error: 'Signup failed.'
+        auth_error: error || 'Signup failed.'
       }
     }
   }
 
-  revalidatePath('/profile', 'page')
-  redirect('/profile')
+  revalidatePath(defaultPostAuthRedirectUrl, 'page')
+  redirect(defaultPostAuthRedirectUrl)
 }
 
 export const signOut = async () => {

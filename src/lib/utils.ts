@@ -15,3 +15,7 @@ export function GenerateFullName(nameFields: { first_name: string, last_name?: s
   if (suffix) fullName += ` ${suffix}`
   return fullName
 }
+
+export function isAccessTokenValid(token: string) {
+  
+}
