@@ -1,38 +1,36 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
-import pick from 'lodash/pick'
-import { ISignUpActionState } from '@/app/(auth)/sign-up/types'
-import { type UserInput as SignUpInput } from "@/app/(auth)/sign-up/formSchema"
 import { type UserInput as SignInInput } from "@/app/(auth)/sign-in/formSchema"
-import { omit } from 'lodash'
-import axios from 'axios'
-import { managementClient, authenticationClient } from '@/lib/auth0'
-import { cookies } from "next/headers";
-import { auth0Client } from '@/lib/auth0'
+import { type UserInput as SignUpInput } from "@/app/(auth)/sign-up/formSchema"
+import { ISignUpActionState } from '@/app/(auth)/sign-up/types'
+import { authenticationClient } from '@/lib/auth0'
 import { GenerateFullName } from '@/lib/utils'
+import pick from 'lodash/pick'
+import { revalidatePath } from 'next/cache'
+import { cookies } from "next/headers"
+import { redirect } from 'next/navigation'
+import { sessionDuration } from '@/lib/static'
 
-export const checkUserExists = async (email: string): Promise<boolean> => {
-  // const supabaseClient = await createClient()
+// export const checkUserExists = async (email: string): Promise<boolean> => {
+//   // const supabaseClient = await createClient()
 
-  // const result = await supabaseClient
-  //   .from('profiles')
-  //   .select('id')
-  //   .eq('email', email)
-  //   .maybeSingle();
+//   // const result = await supabaseClient
+//   //   .from('profiles')
+//   //   .select('id')
+//   //   .eq('email', email)
+//   //   .maybeSingle();
 
-  // const { data, error } = result
+//   // const { data, error } = result
 
-  // if (error) {
-  //   console.error('Error checking user:', error.message);
-  //   throw new Error('Database error');
-  // }
+//   // if (error) {
+//   //   console.error('Error checking user:', error.message);
+//   //   throw new Error('Database error');
+//   // }
 
-  // return !!data
+//   // return !!data
 
-  return true
-}
+//   return true
+// }
 
 
 export const signUpAction = async (data: SignUpInput): Promise<ISignUpActionState | null> => {
@@ -53,20 +51,18 @@ export const signUpAction = async (data: SignUpInput): Promise<ISignUpActionStat
   }
 
   try {
-    const user = await managementClient.users.create({
-      ...user_data,
+    const user = await authenticationClient.database.signUp({
       connection: 'Username-Password-Authentication',
-      verify_email: true,
-      user_metadata: {
-        ...profile_data,
-        nickname: profile_data.preferred_name,
-        name: GenerateFullName(pick(profile_data, ['first_name', 'last_name', 'suffix'])),
-        given_name: profile_data.first_name,
-        family_name: profile_data.last_name,
-        phone_number: profile_data.phone_number,
-      }
-    });
-
+      email: user_data.email,
+      password: user_data.password,
+      nickname: profile_data.preferred_name,
+      name: GenerateFullName(pick(profile_data, ['first_name', 'last_name', 'suffix'])),
+      given_name: profile_data.first_name,
+      family_name: profile_data.last_name,
+      user_metadata: profile_data,
+    })
+    
+    console.log("%c Line:55 🥚 user11111111", "color:#7f2b82", user);
 
     if (!user) {
       return {
@@ -105,6 +101,7 @@ export const signUpAction = async (data: SignUpInput): Promise<ISignUpActionStat
       secure: true,
       sameSite: "lax",
       path: "/",
+      maxAge: sessionDuration,
     });
 
     cookieStore.set("id_token", id_token as string, {
@@ -112,6 +109,7 @@ export const signUpAction = async (data: SignUpInput): Promise<ISignUpActionStat
       secure: true,
       sameSite: "lax",
       path: "/",
+      maxAge: sessionDuration,
     });
   } catch (error) {
     console.log("%c Line:215 🍰 signUpAction > error", "color:#fca650", error);
@@ -160,6 +158,8 @@ export const signInAction = async (data: SignInInput) => {
       secure: true,
       sameSite: "lax",
       path: "/",
+      // maxAge: sessionDuration,
+      maxAge: 60 * 1
     });
 
     cookieStore.set("id_token", id_token as string, {
@@ -167,8 +167,9 @@ export const signInAction = async (data: SignInInput) => {
       secure: true,
       sameSite: "lax",
       path: "/",
+      // maxAge: sessionDuration,
+      maxAge: 60 * 1
     });
-
   } catch (error) {
     console.log("%c Line:215 🍰 signUpAction > error", "color:#fca650", error);
     return {
