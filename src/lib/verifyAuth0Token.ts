@@ -5,8 +5,9 @@ import jwt, {
   JwtPayload,
 } from 'jsonwebtoken';
 import jwksClient, { JwksClient } from 'jwks-rsa';
+import { managementClient, authenticationClient } from '@/lib/auth0';
 
-export interface Auth0BasePayload extends JwtPayload {
+export interface IAuth0BasePayload extends JwtPayload {
   iss: string; // Issuer
   sub: string; // Subject (user ID)
   aud: string | string[]; // Audience
@@ -18,6 +19,8 @@ export interface Auth0BasePayload extends JwtPayload {
 
 
 export type TokenType = 'id' | 'access';
+
+interface IResultType { payload: IAuth0BasePayload; type: TokenType }
 
 const domain = process.env.AUTH0_DOMAIN!;
 const clientId = process.env.AUTH0_CLIENT_ID!;
@@ -47,7 +50,7 @@ function getKey(
 
 
 // Detect if token is likely an ID or Access token
-function detectTokenType(payload: Auth0BasePayload): TokenType {
+function detectTokenType(payload: IAuth0BasePayload): TokenType {
   const aud = payload.aud;
 
   if (Array.isArray(aud)) {
@@ -64,17 +67,17 @@ function detectTokenType(payload: Auth0BasePayload): TokenType {
 // Verify an Auth0-issued token (ID or Access)
 export async function verifyAuth0Token(
   token: string
-): Promise<{ isValid: boolean, error?: unknown }> {
+): Promise<{ isValid: boolean, error?: unknown, result?: IResultType }> {
 
   try {
-    const result: { payload: Auth0BasePayload; type: TokenType } = await new Promise((resolve, reject) => {
+    const result: IResultType = await new Promise((resolve, reject) => {
       const decoded = jwt.decode(token, { complete: true });
 
       if (!decoded || typeof decoded !== 'object' || !('payload' in decoded)) {
         return reject(new Error('Invalid JWT format'));
       }
 
-      const payload = decoded.payload as Auth0BasePayload;
+      const payload = decoded.payload as IAuth0BasePayload;
       const tokenType = detectTokenType(payload);
       const expectedAudience = tokenType === 'id' ? clientId : apiAudience;
 
@@ -90,20 +93,29 @@ export async function verifyAuth0Token(
         verifyOptions,
         (err: VerifyErrors | null, verifiedPayload) => {
           if (err) return reject(err);
-
-          const verified = verifiedPayload as Auth0BasePayload;
+          const verified = verifiedPayload as IAuth0BasePayload;
           resolve({ payload: verified, type: tokenType });
         }
       );
     });
 
 
+    if (result && result.type === 'id') {
+      const user = await managementClient.users.get(result.payload.sub)
+      if (user && user.blocked) {
+        return {
+          isValid: false,
+          error: 'User account is blocked, please contact administrator.'
+        }
+      }
+    }
+
     return {
       isValid: true,
-      error: null
+      result
     }
   } catch (error) {
-    console.log("%c Line:72 🍒 Auth0BasePayload --> error", "color:#7f2b82", error);
+    console.log("%c ERROR: verifyAuth0Token", "color:#7f2b82", error);
     return {
       isValid: false,
       error

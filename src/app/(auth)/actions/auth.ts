@@ -10,9 +10,10 @@ import { revalidatePath } from 'next/cache'
 import { cookies } from "next/headers"
 import { redirect } from 'next/navigation'
 import { sessionDuration, defaultPostAuthRedirectUrl } from '@/lib/static'
+import { AuthApiError } from "auth0"
 
 
-export const signUpAction = async (data: SignUpInput): Promise<ISignUpActionState | null> => {
+export const signUpAction = async (data: SignUpInput) => {
 
   const user_data = pick(data, ['email', 'password'])
 
@@ -41,8 +42,6 @@ export const signUpAction = async (data: SignUpInput): Promise<ISignUpActionStat
       user_metadata: profile_data,
     })
 
-    console.log("%c Line:55 🥚 user11111111", "color:#7f2b82", user);
-
     if (!user) {
       return {
         success: false,
@@ -70,7 +69,6 @@ export const signUpAction = async (data: SignUpInput): Promise<ISignUpActionStat
       }
     }
 
-
     // Save tokens in a secure cookie (simplified example)
     const { access_token, id_token } = tokenResponse.data
 
@@ -91,11 +89,16 @@ export const signUpAction = async (data: SignUpInput): Promise<ISignUpActionStat
       maxAge: sessionDuration,
     });
   } catch (error) {
-    console.log("%c Line:215 🍰 signUpAction > error", "color:#fca650", error);
+    console.log("%c ERROR: signUpAction", "color:#3f7cff", error);
+    let error_message = 'Signup failed.'
+    if (error instanceof AuthApiError) {
+      error_message = error.error_description
+    }
+
     return {
       success: false,
       errors: {
-        auth_error: 'Signup failed.'
+        auth_error: error_message
       }
     }
   }
@@ -148,10 +151,16 @@ export const signInAction = async (data: SignInInput) => {
       // maxAge: 60 * 1
     });
   } catch (error) {
+    console.log("%c Line:151 🍋 ERROR: signInAction", "color:#3f7cff", error);
+    let error_message = 'Signin failed, please try again later.'
+    if (error instanceof AuthApiError) {
+      error_message = error.error_description
+    }
+
     return {
       success: false,
       errors: {
-        auth_error: error || 'Signup failed.'
+        auth_error: error_message
       }
     }
   }

@@ -1,12 +1,16 @@
+'use client'
+import { Toaster } from "@/components/ui/sonner"
 
-const page = async () => {
+const page = () => {
 
-    return (
-        <div className='flex flex-col gap-4'>
-            PROFILE PAGE
-        </div>
-
-    )
+  return (
+    <>
+      <Toaster />
+      <div className='flex flex-col gap-4'>
+        PROFILE PAGE
+      </div>
+    </>
+  )
 }
 
 export default page
