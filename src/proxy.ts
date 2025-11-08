@@ -3,6 +3,8 @@ import auth0Middleware from '@/middlewares/auth0Middleware'
 import { auth0Client } from "@/lib/auth0";
 
 export async function proxy(request: NextRequest) {
+
+    // TODO: Check if mounting this middlware from auth0/nextjs-auth0 library is stil necessary or usable
     await auth0Client.middleware(request);
 
     const auth0response = await auth0Middleware(request)

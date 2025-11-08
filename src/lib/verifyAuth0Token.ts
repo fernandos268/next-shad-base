@@ -48,7 +48,6 @@ function getKey(
 }
 
 
-
 // Detect if token is likely an ID or Access token
 function detectTokenType(payload: IAuth0BasePayload): TokenType {
   const aud = payload.aud;
