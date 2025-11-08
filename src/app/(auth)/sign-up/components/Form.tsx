@@ -57,7 +57,6 @@ export function SignupForm(props: IProps) {
 
   const onSubmit = async (data: UserInput) => {
     const result = await signUpAction(data)
-    console.log("%c Line:60 🍬 result", "color:#42b983", result);
     if (!result.success) {
       const [error] = Object.values(result.errors)
       toast.error(error)

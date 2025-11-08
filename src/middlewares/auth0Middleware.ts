@@ -1,16 +1,12 @@
-import { NextResponse, type NextRequest } from 'next/server'
-import { auth0Client } from "@/lib/auth0";
-import { PrivatePageRotues, AuthPageRoutes, defaultPostAuthRedirectUrl } from '@/lib/static'
+import { AuthPageRoutes, PrivatePageRotues } from '@/lib/static';
 import { verifyAuth0Token } from '@/lib/verifyAuth0Token';
+import { NextResponse, type NextRequest } from 'next/server';
 
 export default async function auth0Middleware(request: NextRequest) {
-
-
   const nextUrl = request.nextUrl.pathname
   const access_token = request.cookies.get("access_token")?.value || '';
   const id_token = request.cookies.get("id_token")?.value || '';
   const url = request.nextUrl.clone()
-
 
   const [verifyTokenResult, verifyUserResult] = await Promise.all([
     verifyAuth0Token(access_token),

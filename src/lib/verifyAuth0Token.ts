@@ -1,11 +1,11 @@
 import jwt, {
-  JwtHeader,
-  VerifyErrors,
-  VerifyOptions,
-  JwtPayload,
+  type JwtHeader,
+  type VerifyErrors,
+  type VerifyOptions,
+  type JwtPayload,
 } from 'jsonwebtoken';
 import jwksClient, { JwksClient } from 'jwks-rsa';
-import { managementClient, authenticationClient } from '@/lib/auth0';
+import { managementClient } from '@/lib/auth0';
 
 export interface IAuth0BasePayload extends JwtPayload {
   iss: string; // Issuer
@@ -18,9 +18,9 @@ export interface IAuth0BasePayload extends JwtPayload {
 }
 
 
-export type TokenType = 'id' | 'access';
+export type TTokenType = 'id' | 'access';
 
-interface IResultType { payload: IAuth0BasePayload; type: TokenType }
+interface IResultType { payload: IAuth0BasePayload; type: TTokenType }
 
 const domain = process.env.AUTH0_DOMAIN!;
 const clientId = process.env.AUTH0_CLIENT_ID!;
@@ -49,7 +49,7 @@ function getKey(
 
 
 // Detect if token is likely an ID or Access token
-function detectTokenType(payload: IAuth0BasePayload): TokenType {
+function detectTokenType(payload: IAuth0BasePayload): TTokenType {
   const aud = payload.aud;
 
   if (Array.isArray(aud)) {
@@ -101,7 +101,14 @@ export async function verifyAuth0Token(
 
     if (result && result.type === 'id') {
       const user = await managementClient.users.get(result.payload.sub)
-      if (user && user.blocked) {
+      if (!user) {
+        return {
+          isValid: false,
+          error: 'User account does not exist.'
+        }
+      }
+
+      if (user.blocked) {
         return {
           isValid: false,
           error: 'User account is blocked, please contact administrator.'
