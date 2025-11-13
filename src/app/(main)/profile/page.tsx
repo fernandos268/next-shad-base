@@ -1,11 +1,9 @@
-'use client'
-import { Toaster } from "@/components/ui/sonner"
 
-const page = () => {
+async function page() {
+
 
   return (
     <>
-      <Toaster />
       <div className='flex flex-col gap-4'>
         PROFILE PAGE
       </div>

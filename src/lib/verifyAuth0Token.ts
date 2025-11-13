@@ -129,7 +129,7 @@ export async function verifyAuth0Token(
     console.log("%c ERROR: verifyAuth0Token", "color:#7f2b82", error);
     return {
       isAuthenticated: false,
-      error
+      error: 'Invalid access token.'
     }
   }
 }
