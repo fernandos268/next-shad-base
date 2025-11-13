@@ -2,7 +2,6 @@
 
 import { type UserInput as SignInInput } from "@/app/(auth)/sign-in/formSchema"
 import { type UserInput as SignUpInput } from "@/app/(auth)/sign-up/formSchema"
-import { ISignUpActionState } from '@/app/(auth)/sign-up/types'
 import { authenticationClient } from '@/lib/auth0'
 import { GenerateFullName } from '@/lib/utils'
 import pick from 'lodash/pick'
@@ -69,8 +68,7 @@ export const signUpAction = async (data: SignUpInput) => {
       }
     }
 
-    // Save tokens in a secure cookie (simplified example)
-    const { access_token, id_token } = tokenResponse.data
+    const { access_token } = tokenResponse.data
 
     const cookieStore = await cookies()
     cookieStore.set("access_token", access_token, {
@@ -81,13 +79,6 @@ export const signUpAction = async (data: SignUpInput) => {
       maxAge: sessionDuration,
     });
 
-    cookieStore.set("id_token", id_token as string, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "lax",
-      path: "/",
-      maxAge: sessionDuration,
-    });
   } catch (error) {
     console.log("%c ERROR: signUpAction", "color:#3f7cff", error);
     let error_message = 'Signup failed.'
@@ -129,8 +120,7 @@ export const signInAction = async (data: SignInInput) => {
       }
     }
 
-    // Save tokens in a secure cookie (simplified example)
-    const { access_token, id_token } = tokenResponse.data
+    const { access_token } = tokenResponse.data
 
     const cookieStore = await cookies()
     cookieStore.set("access_token", access_token, {
@@ -142,14 +132,6 @@ export const signInAction = async (data: SignInInput) => {
       // maxAge: 60 * 1
     });
 
-    cookieStore.set("id_token", id_token as string, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "lax",
-      path: "/",
-      maxAge: sessionDuration,
-      // maxAge: 60 * 1
-    });
   } catch (error) {
     console.log("%c Line:151 🍋 ERROR: signInAction", "color:#3f7cff", error);
     let error_message = 'Signin failed, please try again later.'
@@ -174,6 +156,12 @@ export const signOut = async () => {
 }
 
 
-export const googleSignInAction = async () => {
-
+export const authenticateWithGoogleAction = async (action: 'sign-in' | 'sign-up') => {
+  // redirect('/api/auth/login?connection=google-oauth2')
+  let url = '/auth/login?connection=google-oauth2'
+  if (action === 'sign-up') {
+    url += '&screen_hint=signup'
+  }
+  redirect(url)
+  // const result = await authenticationClient.oauth.clientCredentialsGrant
 }

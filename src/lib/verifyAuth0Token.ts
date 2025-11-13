@@ -60,16 +60,17 @@ function detectTokenType(payload: IAuth0BasePayload): TTokenType {
     if (aud === clientId) return 'id';
   }
 
-  return 'id'
+  return 'access'
 }
 
 // Verify an Auth0-issued token (ID or Access)
 export async function verifyAuth0Token(
   token: string
-): Promise<{ isValid: boolean, error?: unknown, result?: IResultType }> {
+): Promise<{ isAuthenticated: boolean, error?: unknown, result?: IResultType }> {
 
   try {
     const result: IResultType = await new Promise((resolve, reject) => {
+      // Decode the JWT token
       const decoded = jwt.decode(token, { complete: true });
 
       if (!decoded || typeof decoded !== 'object' || !('payload' in decoded)) {
@@ -99,34 +100,36 @@ export async function verifyAuth0Token(
     });
 
 
-    if (result && result.type === 'id') {
+    // Manually check the user validity using Management API Client
+    if (result && result.payload.sub) {
       const user = await managementClient.users.get(result.payload.sub)
+      let user_auth_error = ''
+
       if (!user) {
-        return {
-          isValid: false,
-          error: 'User account does not exist.'
-        }
+        user_auth_error = 'User account does not exist.'
       }
 
       if (user.blocked) {
+        user_auth_error = 'User account is blocked, please contact administrator.'
+      }
+
+      if (user_auth_error) {
         return {
-          isValid: false,
-          error: 'User account is blocked, please contact administrator.'
+          isAuthenticated: false,
+          error: user_auth_error
         }
       }
     }
 
     return {
-      isValid: true,
+      isAuthenticated: true,
       result
     }
   } catch (error) {
     console.log("%c ERROR: verifyAuth0Token", "color:#7f2b82", error);
     return {
-      isValid: false,
+      isAuthenticated: false,
       error
     }
   }
-
-
 }
